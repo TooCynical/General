@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import pylab
 
 
+GATE_SIZE_CAP_FACTOR = 1.0
+WIRE_LENGTH_CAP_FACTOR = 1.0
+
 class TimingGraph:
     def __init__(self):
         self.nodes = []
@@ -27,18 +30,36 @@ class TimingGraph:
             
         return node
 
+    def compute_downcaps(self):
+        for node in reversed(self.nodes):
+            downcap = 0.0            
+            for child in node.children:
+                downcap += child.cap()
+                downcap += Node.dist(node, child) * WIRE_LENGTH_CAP_FACTOR
+            node.set_downcap(downcap)
+
     def draw(self):
         G = nx.DiGraph()
-        pos = [[node.x, node.y] for node in self.nodes]
-        colors = ['blue' if node.gate else 'black' for node in self.nodes]
-        sizes = [node.gate.size * 300 if node.gate else 50 for node in self.nodes]
+        node_pos = [[node.x, node.y] for node in self.nodes]
+        label_pos = [[node.x, node.y + -0.35] for node in self.nodes]
+        
+        colors = ['red' if node.gate else 'black' for node in self.nodes]
+        sizes = [node.gate.size * 500 if node.gate else 50 for node in self.nodes]
+        labeldict = {}
         for node in self.nodes:
             G.add_node(node.idx)
+            
             for child in node.children:
-                G.add_edge(node.idx, child.idx)                
+                G.add_edge(node.idx, child.idx)     
 
-        nx.draw(G, pos, node_color = colors, node_size = sizes)
-
+            labeldict[node.idx] = node.downcap            
+            
+        nx.draw(G, node_pos, node_color = colors, node_size = sizes)
+        nx.draw_networkx_labels(G, label_pos, labeldict)
+        
+    def print_nodes(self):
+        for node in self.nodes:
+            print node
         
 class Node:
     def __init__(self, idx, x, y, parents):
@@ -47,9 +68,25 @@ class Node:
         self.y = float(y)
         self.parents = parents
         self.children = []
+        self.downcap = -1
         
         for p in parents:
             p.add_child(self)
+            
+    def cap(self):
+        if self.gate:
+            return self.gate.size * GATE_SIZE_CAP_FACTOR
+        else:
+            return self.downcap
+            
+    def delay(self):
+        if self.gate:
+            return self.downcap / self.gate.size
+        else:
+            return 0.0
+
+    def set_downcap(self, downcap):
+        self.downcap = downcap
         
     def set_gate(self, gate):
         self.gate = gate
@@ -60,8 +97,17 @@ class Node:
     def __repr__(self):
         return "Node: " + str([p.idx for p in self.parents]) + "->" + str(self.idx) + \
                "->" + str([c.idx for c in self.children]) + " @" + str((self.x, self.y)) + "\n" + \
-               "gate: " + str(self.gate)
+               "gate: " + str(self.gate) + "\n" + \
+               "delay: " + str(self.delay()) + "\n" + \
+               "downcap: " + str(self.downcap) +  "\n" + \
+               "incap: " + str(self.cap())
 
+    def dist(node1, node2):
+        return abs(node1.x - node2.x) + abs(node1.y - node2.y)
+
+class Edge:
+    def __init__(self, ):
+        pass
 
 class Gate:
     def __init__(self, size=1.0, rho=1.0):
@@ -74,12 +120,15 @@ class Gate:
 
 G = TimingGraph()
 n1 = G.add_node(gate=Gate(4))
-n2 = G.add_node(1.0, 1, [n1], gate=Gate(0.5))
+n2 = G.add_node(1.0, 1, [n1], gate=Gate(1))
 n3 = G.add_node(1.0, -1, [n1], gate=Gate(2))
 n4 = G.add_node(2.0, 0.0, [n2, n3])
 n5 = G.add_node(2.5, 0.0, [n4])
 n6 = G.add_node(3.0, 0.0, [n5], gate=Gate())
 n7 = G.add_node(3.0, 1.0, [n5], gate=Gate())
+
+G.compute_downcaps()
+G.print_nodes()
 
 G.draw()
 pylab.show()
