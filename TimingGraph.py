@@ -41,9 +41,9 @@ class TimingGraph:
     def draw(self):
         G = nx.DiGraph()
         node_pos = [[node.x, node.y] for node in self.nodes]
-        label_pos = [[node.x, node.y + -0.35] for node in self.nodes]
+        label_pos = [[node.x, node.y] for node in self.nodes]
         
-        colors = ['red' if node.gate else 'black' for node in self.nodes]
+        colors = ['gray' if node.gate else 'black' for node in self.nodes]
         sizes = [node.gate.size * 500 if node.gate else 50 for node in self.nodes]
         labeldict = {}
         for node in self.nodes:
@@ -52,10 +52,13 @@ class TimingGraph:
             for child in node.children:
                 G.add_edge(node.idx, child.idx)     
 
-            labeldict[node.idx] = node.downcap            
-            
-        nx.draw(G, node_pos, node_color = colors, node_size = sizes)
-        nx.draw_networkx_labels(G, label_pos, labeldict)
+            if node.gate:
+                labeldict[node.idx] = node.delay()            
+            else:
+                labeldict[node.idx] = ""
+
+        nx.draw(G, node_pos, node_color = colors, node_size = sizes, alpha=0.3)
+        nx.draw_networkx_labels(G, label_pos, labeldict, font_color='r')
         
     def print_nodes(self):
         for node in self.nodes:
@@ -75,7 +78,7 @@ class Node:
             
     def cap(self):
         if self.gate:
-            return self.gate.size * GATE_SIZE_CAP_FACTOR
+            return self.gate.size * self.gate.rho
         else:
             return self.downcap
             
@@ -106,8 +109,9 @@ class Node:
         return abs(node1.x - node2.x) + abs(node1.y - node2.y)
 
 class Edge:
-    def __init__(self, ):
-        pass
+    def __init__(self, head_idx, tail_idx):
+        self.head_idx = head_idx
+        self.tail_idx = tail_idx
 
 class Gate:
     def __init__(self, size=1.0, rho=1.0):
@@ -122,7 +126,7 @@ G = TimingGraph()
 n1 = G.add_node(gate=Gate(4))
 n2 = G.add_node(1.0, 1, [n1], gate=Gate(1))
 n3 = G.add_node(1.0, -1, [n1], gate=Gate(2))
-n4 = G.add_node(2.0, 0.0, [n2, n3])
+n4 = G.add_node(2.0, 0.0, [n2, n3], gate=Gate())
 n5 = G.add_node(2.5, 0.0, [n4])
 n6 = G.add_node(3.0, 0.0, [n5], gate=Gate())
 n7 = G.add_node(3.0, 1.0, [n5], gate=Gate())
