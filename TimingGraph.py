@@ -35,7 +35,7 @@ class TimingGraph:
             downcap = 0.0            
             for child in node.children:
                 downcap += child.cap()
-                downcap += Node.dist(node, child) * WIRE_LENGTH_CAP_FACTOR
+                downcap += dist(node, child) * WIRE_LENGTH_CAP_FACTOR
             node.set_downcap(downcap)
 
     def draw(self):
@@ -105,8 +105,8 @@ class Node:
                "downcap: " + str(self.downcap) +  "\n" + \
                "incap: " + str(self.cap())
 
-    def dist(node1, node2):
-        return abs(node1.x - node2.x) + abs(node1.y - node2.y)
+def dist(node1, node2):
+    return abs(node1.x - node2.x) + abs(node1.y - node2.y)
 
 class Edge:
     def __init__(self, head_idx, tail_idx):

@@ -33,6 +33,13 @@ def cmp(s11, s21, s31, l1, s12, s22, s32, l2):
 
 	return convex
 
+def chain_delay_derivative():
+    n = len(s)
+    l_derivatives = []
+    
+    for i in xrange(n):
+      l_derivatives.append()  
+        
 
 def chain_delay(s, l):
 	n = len(s)
@@ -47,6 +54,9 @@ def AM(x1, x2):
 
 def GR(x1, x2):
 	return math.sqrt(x1 * x2)
+ 
+def is_local_min(s, l):
+    val = chain_delay(s,l)
 
 
 if __name__ == "__main__":
@@ -55,8 +65,9 @@ if __name__ == "__main__":
 	
 	n = 3
 	u, v = 1, 5
-
-	print chain_delay([1, 1, 1], [0.5, 0.5])
+	epsilon = 0.01
+      
+	print chain_delay([3, 3, 3], [0.5, 0.5])
 
 	for i in xrange(t):
 		s = [random.uniform(u, v) for dummy in range(n)]
