@@ -43,7 +43,7 @@ class TimingGraph:
         node_pos = [[node.x, node.y] for node in self.nodes]
         label_pos = [[node.x, node.y] for node in self.nodes]
         
-        colors = ['gray' if node.gate else 'black' for node in self.nodes]
+        colors = ['red' if node.gate else 'black' for node in self.nodes]
         sizes = [node.gate.size * 500 if node.gate else 50 for node in self.nodes]
         labeldict = {}
         for node in self.nodes:
